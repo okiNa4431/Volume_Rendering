@@ -9,7 +9,7 @@ using namespace std;
 void read_volume(const char filename[], unsigned short*** &volume, const std::vector<int>& voxelSize)
 {
 	ifstream ifs(filename, ios::in | ios::binary);
-	
+	volume = new unsigned short** [voxelSize[2]];
 	for (int i = 0; i < voxelSize[2]; i++)
 	{
 		volume[i] = new unsigned short*[voxelSize[1]];

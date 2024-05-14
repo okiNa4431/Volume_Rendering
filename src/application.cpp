@@ -19,6 +19,7 @@ void Application::Run()
 {
 	//ウィンドウを設定
 	glfwMakeContextCurrent(window);
+	glClearColor(1, 1, 1, 1);
 
 	//ループ
 	while (!glfwWindowShouldClose(window))
