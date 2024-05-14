@@ -6,8 +6,9 @@ using namespace std;
 class renderer
 {
 private:
-	bool setShaderFile(const string& vertexFileName, const string& fragmentFileName);
+	bool setShaderFile();
 public:
+	bool setRenderer();
 	renderer();
 	~renderer();
 };

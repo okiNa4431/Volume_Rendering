@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 using namespace std;
 
@@ -21,4 +22,16 @@ void read_volume(const char filename[], unsigned short*** &volume, const std::ve
 	}
 
 	ifs.close();
+}
+
+string read_shader(const char filename[])
+{
+	const auto absolutePath = filesystem::current_path() / "shader" / filename;
+	const string path_str = absolutePath.string();
+	cout << path_str << endl;
+
+	ifstream ifs(absolutePath, ios::in);
+	istreambuf_iterator<char> shaderBegin(ifs);
+	istreambuf_iterator<char> shaderEnd;
+	return { shaderBegin, shaderEnd };
 }

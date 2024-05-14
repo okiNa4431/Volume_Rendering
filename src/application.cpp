@@ -8,27 +8,36 @@ bool Application::Init()
 	}
 
 	//ウィンドウ作成
-	window = glfwCreateWindow(1200, 900, "OpenGL Window", NULL, NULL);
-	if (!window)
+	_window = glfwCreateWindow(1200, 900, "OpenGL Window", NULL, NULL);
+	if (!_window)
 	{
 		return false;
 	}
+
+	//renderer作成
+	_renderer = renderer();
 }
 
 void Application::Run()
 {
 	//ウィンドウを設定
-	glfwMakeContextCurrent(window);
+	glfwMakeContextCurrent(_window);
 	glClearColor(1, 1, 1, 1);
 
+	//rendererを設定
+	if (!_renderer.setRenderer())
+	{
+		exit(EXIT_FAILURE);
+	}
+
 	//ループ
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(_window))
 	{
 		//ウィンドウクリア
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//スワップ
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(_window);
 
 		//イベントのポーリング
 		glfwPollEvents();
@@ -47,7 +56,7 @@ Application& Application::Instance()
 }
 Application::Application()
 {
-	window = nullptr;
+	_window = nullptr;
 }
 Application::~Application()
 {

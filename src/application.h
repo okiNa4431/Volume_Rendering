@@ -2,12 +2,16 @@
 
 #include <iostream>
 #include <glfw3.h>
+#include "renderer.h"
 
 class Application
 {
 private:
 	//ウィンドウ
-	GLFWwindow* window;
+	GLFWwindow* _window;
+
+	//renderer
+	renderer _renderer;
 
 	//シングルトンなのでコンストラクタをここに置いておく
 	Application();
