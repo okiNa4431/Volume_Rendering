@@ -46,7 +46,7 @@ Application& Application::Instance()
 }
 Application::Application()
 {
-
+	window = nullptr;
 }
 Application::~Application()
 {

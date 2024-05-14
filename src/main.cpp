@@ -7,7 +7,7 @@ int main()
 	auto& app = Application::Instance();
 	if (!app.Init())
 	{
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	app.Run();
 	app.Terminate();
