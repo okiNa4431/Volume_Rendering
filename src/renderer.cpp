@@ -13,7 +13,8 @@ bool renderer::setRenderer()
 {
 	if (!setShaderFile())
 	{
-		exit(EXIT_FAILURE);
+		printf("could not set shader file\n");
+		return false;
 	}
 
 	return true;

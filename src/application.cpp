@@ -4,13 +4,18 @@ bool Application::Init()
 {
 	// GLFWの初期化
 	if (!glfwInit()) {
+		printf("could not init glfw\n");
 		return false;
 	}
 
 	//ウィンドウ作成
-	_window = glfwCreateWindow(1200, 900, "OpenGL Window", NULL, NULL);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
+	_window = glfwCreateWindow(1200, 900, "OpenGL Window", nullptr, nullptr);
 	if (!_window)
 	{
+		printf("could not create window\n");
 		return false;
 	}
 

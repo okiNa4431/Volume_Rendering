@@ -26,7 +26,9 @@ void read_volume(const char filename[], unsigned short*** &volume, const std::ve
 
 string read_shader(const char filename[])
 {
-	const auto absolutePath = filesystem::current_path() / "shader" / filename;
+	const string currentPath_str = filesystem::current_path().string();
+	const filesystem::path trueCurrentPath = currentPath_str.substr(0, currentPath_str.find("Volume_Rendering")+17);
+	const filesystem::path absolutePath = trueCurrentPath / "src" / "shader" / filename;
 	const string path_str = absolutePath.string();
 	cout << path_str << endl;
 

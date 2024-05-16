@@ -7,6 +7,7 @@ int main()
 	auto& app = Application::Instance();
 	if (!app.Init())
 	{
+		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
 	app.Run();
