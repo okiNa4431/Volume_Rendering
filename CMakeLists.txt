@@ -11,8 +11,10 @@ project("Volume_Rendering")
 
 #library to use
 find_package(OpenGL REQUIRED)
-set(CMAKE_PREFIX_PATH /Libraries/glfwlib)
+list(APPEND CMAKE_PREFIX_PATH /Libraries/glfwlib)
+list(APPEND CMAKE_PREFIX_PATH /Libraries/glewlib/GLEW/include)
 find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
 
 #subdirectory
 add_subdirectory ("src")
@@ -32,5 +34,10 @@ if(glfw3_FOUND)
 	message(STATUS "glfw3:")
 else(glfw3_FOUND)
 	message(WARNING "glfw3 NOT Found")
+endif()
+if(GLEW_FOUND)
+	message(STATUS "glew:")
+else(GLEW_FOUND)
+	message(WARNING "glew NOT Found")
 endif()
 message(STATUS "----------Message End------------")

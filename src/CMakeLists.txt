@@ -11,3 +11,5 @@ target_link_libraries(${BUILD_TARGET}
   glfw
   ${CMAKE_DL_LIBS}
 )
+target_include_directories(${BUILD_TARGET} PUBLIC /Libraries/glewlib/GLEW)
+target_link_libraries(${BUILD_TARGET} ${GLEW_LIBRARIES})

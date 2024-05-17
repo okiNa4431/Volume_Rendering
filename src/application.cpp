@@ -4,7 +4,7 @@ bool Application::Init()
 {
 	// GLFWの初期化
 	if (!glfwInit()) {
-		printf("could not init glfw\n");
+		cout << "could not init glfw" << endl;
 		return false;
 	}
 
@@ -15,7 +15,16 @@ bool Application::Init()
 	_window = glfwCreateWindow(1200, 900, "OpenGL Window", nullptr, nullptr);
 	if (!_window)
 	{
-		printf("could not create window\n");
+		cout << "could not create window" << endl;
+		return false;
+	}
+	glfwMakeContextCurrent(_window);
+	glClearColor(1, 1, 1, 1);
+
+	//GLEWの初期化
+	glewExperimental = GL_TRUE;
+	if (glewInit() != GLEW_OK) {
+		std::cerr << "could not init glew" << std::endl;
 		return false;
 	}
 
@@ -25,10 +34,6 @@ bool Application::Init()
 
 void Application::Run()
 {
-	//ウィンドウを設定
-	glfwMakeContextCurrent(_window);
-	glClearColor(1, 1, 1, 1);
-
 	//rendererを設定
 	if (!_renderer.setRenderer())
 	{
