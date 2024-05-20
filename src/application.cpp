@@ -65,6 +65,7 @@ void Application::Run()
 
 void Application::Terminate()
 {
+	_renderer.terminate();
 	glfwTerminate();
 }
 

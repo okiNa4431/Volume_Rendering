@@ -27,7 +27,7 @@ int renderer::compile_shader(const string& shader_str, const int shader_type)
 		GLsizei length;
 		auto* infoLog = new GLchar[maxLength];
 		glGetShaderInfoLog(shader, maxLength, &length, infoLog);
-		if(infoLog) std::cout << "log: " << infoLog << std::endl;
+		if (sizeof(infoLog) > 8) std::cout << "log: " << infoLog << std::endl;
 		delete[] infoLog;
 	}
 	return shader;
@@ -57,22 +57,23 @@ bool renderer::setRenderer()
 	int fShaderId = compile_shader(fragment_str, GL_FRAGMENT_SHADER);
 
 	//シェーダープログラムにシェーダーをアタッチ、リンク
-	int programId = glCreateProgram();
-	glAttachShader(programId, vShaderId);
-	glAttachShader(programId, fShaderId);
-	glLinkProgram(programId);
-	glUseProgram(programId);
+	_programId = glCreateProgram();
+	glAttachShader(_programId, vShaderId);
+	glAttachShader(_programId, fShaderId);
+	glLinkProgram(_programId);
+	glUseProgram(_programId);
 
 	return true;
 }
 
-bool renderer::setObject()
+bool renderer::setScreen()
 {
 	// 頂点データ
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f
+		-1.0f, -1.0f, 0.0f,
+		-1.0f,  1.0f, 0.0f,
+		 1.0f, -1.0f, 0.0f,
+		 1.0f,  1.0f, 0.0f,
 	};
 
 	glGenVertexArrays(1, &_VA0);
@@ -103,20 +104,29 @@ bool renderer::setVolume(const string& filePath)
 	//3Dテクスチャ生成
 	GLuint volumeId;
 	glGenTextures(1, &volumeId);//テクスチャオブジェクト生成
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, volumeId);//バインド
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_R, size[0], size[1], size[2], 0, GL_R, GL_UNSIGNED_SHORT, CT);//テクスチャ初期化、書き込み
 
 	//ボリューム(3Dテクスチャ)転送
-	
+	glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
 
 	return true;
 }
 
 void renderer::draw()
 {
+	setScreen();
 	glBindVertexArray(_VA0);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0); // VAOのバインドを解除
+}
+
+void renderer::terminate()
+{
+	glDeleteVertexArrays(1, &_VA0);
+	glDeleteBuffers(1, &_VB0);
+	glDeleteProgram(_programId);
 }
 
 renderer::renderer()
