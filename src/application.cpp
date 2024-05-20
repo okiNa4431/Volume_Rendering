@@ -40,11 +40,20 @@ void Application::Run()
 		exit(EXIT_FAILURE);
 	}
 
+	//描画対象を設定
+	if (!_renderer.setVolume("D:shell_512_512_271.raw"))
+	{
+		exit(EXIT_FAILURE);
+	}
+
 	//ループ
 	while (!glfwWindowShouldClose(_window))
 	{
 		//ウィンドウクリア
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		//描画
+		_renderer.draw();
 
 		//スワップ
 		glfwSwapBuffers(_window);
