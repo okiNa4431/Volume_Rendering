@@ -14,21 +14,22 @@ float getCT(vec3 pos)
 
 void main()
 {
-	vec3 start = vec3(gl_FragCoord.x/512, gl_FragCoord.y/512, 0.5);
+	vec3 start = vec3(gl_FragCoord.x/512+camera.x, gl_FragCoord.y/512+camera.y, 0.0);
 	vec3 now = start;
-	float color = 0;
-	float alpha = 0;
+	float totalcolor = 0;
+	float totalalpha = 0;
 
 	for(int i=0;i<271;i++)
 	{
+		if(now.x < 0.0 || now.x > 1.0 || now.y < 0.0 || now.y > 1.0 || now.z < 0.0 || now.z > 1.0) continue;
+		if(totalalpha >= 1.0) break;
+
 		float CT = getCT(now);
-			color = CT;
-			alpha = CT;
-			break;
-		//color += CT;
-		//alpha += CT;
-		//if(alpha >= 1) break;
+		float alpha = CT*0.01;
+		totalcolor += CT*alpha*(1.0-totalalpha);
+		totalalpha += alpha*(1.0-totalalpha);
 		now += step*ray;
 	}
-	FragColor = vec4(color, color, color, alpha);
+	if(totalalpha > 0.0) FragColor = vec4(totalcolor, totalcolor, totalcolor, totalalpha);
+	else FragColor = vec4(0, 0, 0, 1);
 }

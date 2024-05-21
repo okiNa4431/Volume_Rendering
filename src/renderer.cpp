@@ -1,6 +1,11 @@
 #include "renderer.h"
 #include "io.h"
 
+inline GLfloat distance(const GLfloat p0[], const GLfloat p1[])
+{
+	return sqrt((p0[0] - p1[0]) * (p0[0] - p1[0]) + (p0[1] - p1[1]) * (p0[1] - p1[1]) + (p0[2] - p1[2]) * (p0[2] - p1[2]));
+}
+
 int renderer::compile_shader(const string& shader_str, const int shader_type)
 {
 	int shader = glCreateShader(shader_type);
@@ -63,6 +68,8 @@ bool renderer::setRenderer()
 	glLinkProgram(_programId);
 	glUseProgram(_programId);
 
+	setScreen();//画面丁度の四角形を描画
+
 	return true;
 }
 
@@ -113,25 +120,33 @@ bool renderer::setVolume(const string& filePath)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	//ボリューム(3Dテクスチャ)、その他パラメータ転送
-	const GLfloat camera[] = {0,0,-1};
-	const GLfloat ray[] = {0,0,1};
+	fill(_camera, _camera + 3, 0.0);
+	fill(_ray, _ray + 3, 0.0); _ray[2] = 1.0;
 	const float step = 1.0/271;
 	glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
-	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, camera);
-	glUniform3fv(glGetUniformLocation(_programId, "ray"), 1, ray);
+	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, _camera);
+	glUniform3fv(glGetUniformLocation(_programId, "ray"), 1, _ray);
 	glUniform1f(glGetUniformLocation(_programId, "step"), step);
-
-	setScreen();//画面丁度の四角形を描画
 
 	return true;
 }
 
+void renderer::setWorldParams(float& scrool)
+{
+	const GLfloat center[3] = { 0.0, 0.0, 0.0 };
+	GLfloat distance_camera_center = distance(_camera, center);
+	if (distance_camera_center > 0.1)
+	{
+		const GLfloat ray2center[3] = { center[0] - _camera[0], center[1] - _camera[1], center[2] - _camera[2] };
+		for (int i = 0; i < 3;i++) _camera[i] += scrool * 0.1 * ray2center[i];
+	}
+	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, _camera);
+
+	scrool = 0.0;
+}
+
 void renderer::draw()
 {
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_3D, _volumeId);//バインド
-	//glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
-
 	glBindVertexArray(_VA0);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }

@@ -9,15 +9,17 @@ class renderer
 private:
 	bool setShaderFile(string& vertex, string& fragment);
 	int compile_shader(const string& shader_str, const int shader_type);
-	GLuint _VA0, _VB0;
-	int _programId;
-	GLuint _volumeId;
-	unsigned short* _CT;
-
+	bool setScreen();
+	GLuint _VA0, _VB0;//頂点バッファ、頂点データ
+	int _programId;//シェーダーオブジェクト
+	GLuint _volumeId;//ボリュームのID
+	unsigned short* _CT;//ボリュームデータ
+	GLfloat _camera[3];//カメラ位置
+	GLfloat _ray[3];//レイの方向
 public:
 	bool setRenderer();
-	bool setScreen();
 	bool setVolume(const string& filePath);
+	void setWorldParams(float& scrool);
 	void draw();
 	void terminate();
 	renderer();
