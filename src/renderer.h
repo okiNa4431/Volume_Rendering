@@ -11,6 +11,9 @@ private:
 	int compile_shader(const string& shader_str, const int shader_type);
 	GLuint _VA0, _VB0;
 	int _programId;
+	GLuint _volumeId;
+	unsigned short* _CT;
+
 public:
 	bool setRenderer();
 	bool setScreen();

@@ -12,14 +12,14 @@ bool Application::Init()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-	_window = glfwCreateWindow(1200, 900, "OpenGL Window", nullptr, nullptr);
+	_window = glfwCreateWindow(512, 512, "OpenGL Window", nullptr, nullptr);
 	if (!_window)
 	{
 		cout << "could not create window" << endl;
 		return false;
 	}
 	glfwMakeContextCurrent(_window);
-	glClearColor(1, 1, 1, 1);
+	glClearColor(0, 0, 0, 1);
 
 	//GLEW‚Ì‰Šú‰»
 	glewExperimental = GL_TRUE;
