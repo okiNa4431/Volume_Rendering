@@ -13,3 +13,5 @@ target_link_libraries(${BUILD_TARGET}
 )
 target_include_directories(${BUILD_TARGET} PUBLIC /Libraries/glewlib/GLEW)
 target_link_libraries(${BUILD_TARGET} ${GLEW_LIBRARIES})
+target_include_directories(${BUILD_TARGET} PUBLIC /Libraries/glmlib/include)
+target_link_libraries(${BUILD_TARGET} ${glm_LIBRARIES})

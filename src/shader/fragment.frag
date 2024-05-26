@@ -5,6 +5,7 @@ uniform vec3 camera;
 uniform vec3 ray;
 uniform float step;
 
+in vec3 texcoord;
 out vec4 FragColor;
 
 float getCT(vec3 pos)
@@ -30,7 +31,7 @@ void main()
 		totalalpha += alpha*(1.0-totalalpha);
 		now += step*ray;
 	}
-	FragColor = vec4(1);
+	FragColor = vec4(1,1,1,0.1);
 	//if(totalalpha > 0.0) FragColor = vec4(totalcolor, totalcolor, totalcolor, totalalpha);
 	//else FragColor = vec4(0, 0, 0, 1);
 }

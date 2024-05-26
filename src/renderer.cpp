@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include "io.h"
+#define PI 3.141592
 
 inline GLfloat distance(const GLfloat p0[], const GLfloat p1[])
 {
@@ -151,27 +152,72 @@ bool renderer::setVolume(const string& filePath)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	//ボリューム(3Dテクスチャ)、その他パラメータ転送
-	fill(_camera, _camera + 3, 0.0); _camera[2] = -1.0;
-	fill(_ray, _ray + 3, 0.0); _ray[2] = 1.0;
 	const float step = 1.0/271;
 	glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
-	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, _camera);
-	glUniform3fv(glGetUniformLocation(_programId, "ray"), 1, _ray);
+	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, value_ptr(_camera));
+	//glUniform3fv(glGetUniformLocation(_programId, "ray"), 1, _ray);
 	glUniform1f(glGetUniformLocation(_programId, "step"), step);
+		//座標変換行列
+	mat4 world = mat4(1.0f);
+	glUniformMatrix4fv(glGetUniformLocation(_programId, "world"), 1, GL_FALSE, value_ptr(world));
+	mat4 view = lookAt(_camera, _target, _up);
+	glUniformMatrix4fv(glGetUniformLocation(_programId, "view"), 1, GL_FALSE, value_ptr(view));
+	mat4 proj = perspective(radians(45.0f), (float)512 / (float)512, 0.1f, 100.0f);
+	glUniformMatrix4fv(glGetUniformLocation(_programId, "proj"), 1, GL_FALSE, value_ptr(proj));
 
 	return true;
 }
 
-void renderer::setWorldParams(float& scrool)
+void renderer::setWorldParams(float& scrool, float deltaX, float deltaY, bool rotateF, bool translateF)
 {
-	const GLfloat center[3] = { 0.0, 0.0, 0.0 };
-	GLfloat distance_camera_center = distance(_camera, center);
-	if (distance_camera_center > 0.1)
+	//前処理
+	vec3 trg2cmr = normalize(_camera - _target);
+
+	//ワールド行列
+	vec3 cameraRight = normalize(cross(_up, trg2cmr));
+	vec3 cameraUp = cross(trg2cmr, cameraRight);
+	mat4 world = mat4(1.0f);
+	if (translateF)
 	{
-		const GLfloat ray2center[3] = { center[0] - _camera[0], center[1] - _camera[1], center[2] - _camera[2] };
-		for (int i = 0; i < 3;i++) _camera[i] += scrool * 0.1 * ray2center[i];
+		_source += cameraRight * deltaX * 0.005f - cameraUp * deltaY * 0.005f;
 	}
-	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, _camera);
+	world = translate(world, _source);
+	//world = rotate(world, radians(0.0f), vec3(0.0f, 0.0f, 1.0f));
+	glUniformMatrix4fv(glGetUniformLocation(_programId, "world"), 1, GL_FALSE, value_ptr(world));
+
+	//ビュー行列
+		//拡大縮小
+	_close += scrool * 0.1f;
+	if (_close <= 0.2f) _close = 0.2f;
+	_camera = _target + trg2cmr * _close;
+		//回転
+	if (rotateF)
+	{
+		vec4 homogeneousCamera(_camera, 1.0f);
+		vec4 homogeneousTarget(_target, 1.0f);
+		float rotateAngleUnitX = 2.0f * PI / 512.0f;
+		float rotateAngleUnitY = PI / 512.0f;
+		float xAngle = -deltaX * rotateAngleUnitX;
+		float yAngle = -deltaY * rotateAngleUnitY;
+
+		float cosAngle = dot(trg2cmr, _up);
+		float yAngleSgn = 0.0f;
+		if (yAngle > 0.0f) yAngleSgn = 1.0f;
+		else if (yAngle < 0.0f) yAngleSgn = -1.0f;
+		if (cosAngle * yAngleSgn> 0.99f) yAngleSgn = 0.0f;
+
+		mat4 rotateX = rotate(mat4(1.0f), xAngle, cameraUp);
+		homogeneousCamera = (rotateX * (homogeneousCamera - homogeneousTarget)) + homogeneousTarget;
+		mat4 rotateY = rotate(mat4(1.0f), yAngle, cameraRight);
+		_camera = (rotateY * (homogeneousCamera - homogeneousTarget)) + homogeneousTarget;
+	}
+
+	mat4 view = lookAt(_camera, _target, _up);
+	glUniformMatrix4fv(glGetUniformLocation(_programId, "view"), 1, GL_FALSE, value_ptr(view));
+
+	//プロジェクション行列
+	mat4 proj = perspective(radians(45.0f), (float)512 / (float)512, 0.1f, 100.0f);
+	glUniformMatrix4fv(glGetUniformLocation(_programId, "proj"), 1, GL_FALSE, value_ptr(proj));
 
 	scrool = 0.0;
 }
@@ -197,7 +243,11 @@ void renderer::terminate()
 
 renderer::renderer()
 {
-
+	_camera = vec3(0.0f, 0.0f, 5.0f);
+	_source = vec3(0.0f, 0.0f, 0.0f);
+	_target = vec3(0.0f, 0.0f, 0.0f);
+	_up = vec3(0.0f, 1.0f, 0.0f);
+	_close = distance(_camera, _source);
 }
 renderer::~renderer()
 {

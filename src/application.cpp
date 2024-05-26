@@ -1,10 +1,19 @@
 #include "application.h"
 
 float scrool_yoffset = 0.0;
+float nowMouseX = 0.0f;
+float nowMouseY = 0.0f;
+float lastMouseX = 0.0f;
+float lastMouseY = 0.0f;
+bool translate_flag = false;
+bool rotate_flag = false;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	std::cout << "マウスの位置 - X: " << xpos << ", Y: " << ypos << std::endl;
+	lastMouseX = nowMouseX;
+	lastMouseY = nowMouseY;
+	nowMouseX = xpos;
+	nowMouseY = ypos;
 }
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -12,28 +21,27 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	{
 		if (action == GLFW_PRESS)
 		{
-			std::cout << "左ボタンが押されました" << std::endl;
+			rotate_flag = true;
 		}
 		else if (action == GLFW_RELEASE)
 		{
-			std::cout << "左ボタンが放されました" << std::endl;
+			rotate_flag = false;
 		}
 	}
-	else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+	else if (button == GLFW_MOUSE_BUTTON_MIDDLE)
 	{
 		if (action == GLFW_PRESS)
 		{
-			std::cout << "右ボタンが押されました" << std::endl;
+			translate_flag = true;
 		}
 		else if (action == GLFW_RELEASE)
 		{
-			std::cout << "右ボタンが放されました" << std::endl;
+			translate_flag = false;
 		}
 	}
 }
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	std::cout << "スクロール - Xオフセット: " << xoffset << ", Yオフセット: " << yoffset << std::endl;
 	scrool_yoffset = yoffset;
 }
 
@@ -101,7 +109,7 @@ void Application::Run()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//描画
-		_renderer.setWorldParams(scrool_yoffset);
+		_renderer.setWorldParams(scrool_yoffset, nowMouseX-lastMouseX, nowMouseY-lastMouseY, rotate_flag, translate_flag);
 		_renderer.draw();
 
 		//スワップ

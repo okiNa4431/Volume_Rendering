@@ -1,8 +1,12 @@
 #pragma once
 #include <string>
 #include <include/GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
+using namespace glm;
 
 class renderer
 {
@@ -14,12 +18,16 @@ private:
 	int _programId;//シェーダーオブジェクト
 	GLuint _volumeId;//ボリュームのID
 	unsigned short* _CT;//ボリュームデータ
-	GLfloat _camera[3];//カメラ位置
-	GLfloat _ray[3];//レイの方向
+	vec3 _camera;//カメラ位置
+	vec3 _source;//オブジェクトの位置
+	vec3 _target;//注視点
+	vec3 _up;//上ベクトル
+	GLfloat _close;//注視点とカメラの距離
+
 public:
 	bool setRenderer();
 	bool setVolume(const string& filePath);
-	void setWorldParams(float& scrool);
+	void setWorldParams(float& scrool, float deltaX, float deltaY, bool rotateF, bool translateF);
 	void draw();
 	void terminate();
 	renderer();
