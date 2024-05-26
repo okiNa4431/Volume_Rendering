@@ -30,6 +30,7 @@ void main()
 		totalalpha += alpha*(1.0-totalalpha);
 		now += step*ray;
 	}
-	if(totalalpha > 0.0) FragColor = vec4(totalcolor, totalcolor, totalcolor, totalalpha);
-	else FragColor = vec4(0, 0, 0, 1);
+	FragColor = vec4(1);
+	//if(totalalpha > 0.0) FragColor = vec4(totalcolor, totalcolor, totalcolor, totalalpha);
+	//else FragColor = vec4(0, 0, 0, 1);
 }

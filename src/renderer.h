@@ -9,8 +9,8 @@ class renderer
 private:
 	bool setShaderFile(string& vertex, string& fragment);
 	int compile_shader(const string& shader_str, const int shader_type);
-	bool setScreen();
-	GLuint _VA0, _VB0;//頂点バッファ、頂点データ
+	bool setCube();
+	GLuint _VA0, _VB0,_IB0;//頂点データ、頂点バッファ、インデックスバッファ
 	int _programId;//シェーダーオブジェクト
 	GLuint _volumeId;//ボリュームのID
 	unsigned short* _CT;//ボリュームデータ

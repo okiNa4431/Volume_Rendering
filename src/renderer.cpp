@@ -68,34 +68,65 @@ bool renderer::setRenderer()
 	glLinkProgram(_programId);
 	glUseProgram(_programId);
 
-	setScreen();//画面丁度の四角形を描画
+	setCube();//ボリュームが収まる直方体を生成
 
 	return true;
 }
 
-bool renderer::setScreen()
+bool renderer::setCube()
 {
 	// 頂点データ
 	float vertices[] = {
-		-1.0f, -1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		-0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		-0.5f, -0.5f, 0.5f,
+		0.5f, -0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f,
+	};
+
+	//インデックスデータ
+	unsigned int indices[] = {
+		//前
+		0,1,2,
+		1,3,2,
+		//右
+		1,5,3,
+		5,7,3,
+		//左
+		0,2,4,
+		2,6,4,
+		//上
+		2,3,7,
+		7,6,2,
+		//下
+		0,4,1,
+		1,4,5,
+		//奥
+		5,4,6,
+		6,7,5,
 	};
 
 	glGenVertexArrays(1, &_VA0);
 	glGenBuffers(1, &_VB0);
+	glGenBuffers(1, &_IB0);
 
-	// VAOとVBOの設定
+	//頂点配列の設定
 	glBindVertexArray(_VA0);
 
+	//頂点データ
 	glBindBuffer(GL_ARRAY_BUFFER, _VB0);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//インデックスデータ
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _IB0);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0); // VBOのバインドを解除
 	glBindVertexArray(0); // VAOのバインドを解除
 
 	return true;
@@ -120,7 +151,7 @@ bool renderer::setVolume(const string& filePath)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	//ボリューム(3Dテクスチャ)、その他パラメータ転送
-	fill(_camera, _camera + 3, 0.0);
+	fill(_camera, _camera + 3, 0.0); _camera[2] = -1.0;
 	fill(_ray, _ray + 3, 0.0); _ray[2] = 1.0;
 	const float step = 1.0/271;
 	glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
@@ -148,7 +179,7 @@ void renderer::setWorldParams(float& scrool)
 void renderer::draw()
 {
 	glBindVertexArray(_VA0);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
 
 void renderer::terminate()
