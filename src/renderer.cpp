@@ -7,6 +7,22 @@ inline GLfloat distance(const GLfloat p0[], const GLfloat p1[])
 	return sqrt((p0[0] - p1[0]) * (p0[0] - p1[0]) + (p0[1] - p1[1]) * (p0[1] - p1[1]) + (p0[2] - p1[2]) * (p0[2] - p1[2]));
 }
 
+vec3 arcball_vector(int x, int y, int width, int height)
+{
+	//マウス位置から球体上の点を計算
+	vec3 point_on_ball = vec3((float)x / width * 2.0 - 1.0, (float)y / height * 2.0 - 1.0, 0.0);
+	point_on_ball.y = -point_on_ball.y;
+	float distance_pow2 = point_on_ball.x * point_on_ball.x + point_on_ball.y * point_on_ball.y;
+
+	//半径1の球体を考えているので、マウス位置が1より小さければその分をz座標で調整する。
+	//つまり、三平方の定理を使ってマウス位置の球体上の奥行きを計算する
+	if (distance_pow2 < 1.0) point_on_ball.z = sqrt(1.0 - distance_pow2);
+	//逆に、1より大きければ正規化して球体表面に投影する
+	else point_on_ball = normalize(point_on_ball);
+
+	return point_on_ball;
+}
+
 int renderer::compile_shader(const string& shader_str, const int shader_type)
 {
 	int shader = glCreateShader(shader_type);
@@ -168,7 +184,7 @@ bool renderer::setVolume(const string& filePath)
 	return true;
 }
 
-void renderer::setWorldParams(float& scrool, float deltaX, float deltaY, bool rotateF, bool translateF)
+void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int nowY, bool rotateF, bool translateF)
 {
 	//前処理
 	vec3 trg2cmr = normalize(_camera - _target);
@@ -179,13 +195,14 @@ void renderer::setWorldParams(float& scrool, float deltaX, float deltaY, bool ro
 	mat4 world = mat4(1.0f);
 	if (translateF)
 	{
-		_source += cameraRight * deltaX * 0.005f - cameraUp * deltaY * 0.005f;
+		_source += cameraRight * (float)(nowX-lastX) * 0.005f - cameraUp * (float)(nowY-lastY) * 0.005f;
 	}
 	world = translate(world, _source);
 	//world = rotate(world, radians(0.0f), vec3(0.0f, 0.0f, 1.0f));
 	glUniformMatrix4fv(glGetUniformLocation(_programId, "world"), 1, GL_FALSE, value_ptr(world));
 
 	//ビュー行列
+	mat4 view = lookAt(_camera, _target, _up);
 		//拡大縮小
 	_close += scrool * 0.1f;
 	if (_close <= 0.2f) _close = 0.2f;
@@ -193,26 +210,23 @@ void renderer::setWorldParams(float& scrool, float deltaX, float deltaY, bool ro
 		//回転
 	if (rotateF)
 	{
-		vec4 homogeneousCamera(_camera, 1.0f);
-		vec4 homogeneousTarget(_target, 1.0f);
-		float rotateAngleUnitX = 2.0f * PI / 512.0f;
-		float rotateAngleUnitY = PI / 512.0f;
-		float xAngle = -deltaX * rotateAngleUnitX;
-		float yAngle = -deltaY * rotateAngleUnitY;
-
-		float cosAngle = dot(trg2cmr, _up);
-		float yAngleSgn = 0.0f;
-		if (yAngle > 0.0f) yAngleSgn = 1.0f;
-		else if (yAngle < 0.0f) yAngleSgn = -1.0f;
-		if (cosAngle * yAngleSgn> 0.99f) yAngleSgn = 0.0f;
-
-		mat4 rotateX = rotate(mat4(1.0f), xAngle, cameraUp);
-		homogeneousCamera = (rotateX * (homogeneousCamera - homogeneousTarget)) + homogeneousTarget;
-		mat4 rotateY = rotate(mat4(1.0f), yAngle, cameraRight);
-		_camera = (rotateY * (homogeneousCamera - homogeneousTarget)) + homogeneousTarget;
+		//arc ball上の点を求める
+		vec3 lastPoint = arcball_vector(lastX, lastY, 512, 512);
+		vec3 nowPoint = arcball_vector(nowX, nowY, 512, 512);
+		//二つの点を原点からのベクトルとみて、ベクトルの成す角度を求める
+		//ここで、0.99fでminをとっているのは1.0fを数値誤差の関係で超えたときにangleがnanになってクラッシュするのを防ぐため
+		float angle = acos(glm::min(0.99f, dot(lastPoint, nowPoint)));
+		//二つのベクトルの外積から回転軸を求める。この回転軸はカメラ座標のものなので、オブジェクト座標に変換する。
+		vec3 axis_cameraCoord = cross(lastPoint, nowPoint);
+		mat3 cmr2obj = inverse(view * world);
+		vec3 axis_objectCoord = cmr2obj * axis_cameraCoord;
+		//変換後の軸で回転行列を計算し、カメラを回転させる。視線ベクトルが上ベクトルと同じもしくは反対の方向を向いていたら挙動が不安定になるので制限をかける
+		//angleを3で割っているのは感度が高くなっているから。本当はそのままでいいはずなので、やや無理やりな解決をしている。
+		vec3 newCamera = rotate(mat4(1.0f), -angle/3.0f, axis_objectCoord) * vec4(_camera, 1.0f);
+		if (abs(dot(_up, normalize(_target-newCamera))) < 0.99f) _camera = newCamera;
 	}
 
-	mat4 view = lookAt(_camera, _target, _up);
+	view = lookAt(_camera, _target, _up);
 	glUniformMatrix4fv(glGetUniformLocation(_programId, "view"), 1, GL_FALSE, value_ptr(view));
 
 	//プロジェクション行列

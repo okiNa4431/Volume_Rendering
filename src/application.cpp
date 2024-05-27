@@ -109,7 +109,7 @@ void Application::Run()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//•`‰æ
-		_renderer.setWorldParams(scrool_yoffset, nowMouseX-lastMouseX, nowMouseY-lastMouseY, rotate_flag, translate_flag);
+		_renderer.setWorldParams(scrool_yoffset, lastMouseX, nowMouseX, lastMouseY, nowMouseY, rotate_flag, translate_flag);
 		_renderer.draw();
 
 		//ƒXƒƒbƒv
