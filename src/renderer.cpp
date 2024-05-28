@@ -94,14 +94,14 @@ bool renderer::setCube()
 {
 	// 頂点データ
 	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,
-		0.5f, -0.5f, -0.5f,
-		-0.5f, 0.5f, -0.5f,
-		0.5f, 0.5f, -0.5f,
-		-0.5f, -0.5f, 0.5f,
-		0.5f, -0.5f, 0.5f,
-		-0.5f, 0.5f, 0.5f,
-		0.5f, 0.5f, 0.5f,
+		-0.5f, -0.5f, -0.26464f,
+		0.5f, -0.5f, -0.26464f,
+		-0.5f, 0.5f, -0.26464f,
+		0.5f, 0.5f, -0.26464f,
+		-0.5f, -0.5f, 0.26464f,
+		0.5f, -0.5f, 0.26464f,
+		-0.5f, 0.5f, 0.26464f,
+		0.5f, 0.5f, 0.26464f,
 	};
 
 	//インデックスデータ
@@ -168,7 +168,7 @@ bool renderer::setVolume(const string& filePath)
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	//ボリューム(3Dテクスチャ)、その他パラメータ転送
-	const float step = 1.0/271;
+	const float step = 0.1f;
 	glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
 	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, value_ptr(_camera));
 	//glUniform3fv(glGetUniformLocation(_programId, "ray"), 1, _ray);
@@ -188,18 +188,15 @@ void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int
 {
 	//前処理
 	vec3 trg2cmr = normalize(_camera - _target);
+	int manhattan_mouse = abs(lastX - nowX) + abs(lastY - nowY);
 
 	//ワールド行列
 	vec3 cameraRight = normalize(cross(_up, trg2cmr));
 	vec3 cameraUp = cross(trg2cmr, cameraRight);
 	mat4 world = mat4(1.0f);
-	if (translateF)
-	{
-		_source += cameraRight * (float)(nowX-lastX) * 0.005f - cameraUp * (float)(nowY-lastY) * 0.005f;
-	}
+		//平行移動
+	if (translateF && manhattan_mouse > 1)_source += cameraRight * (float)(nowX - lastX) * 0.005f - cameraUp * (float)(nowY - lastY) * 0.005f;
 	world = translate(world, _source);
-	//world = rotate(world, radians(0.0f), vec3(0.0f, 0.0f, 1.0f));
-	glUniformMatrix4fv(glGetUniformLocation(_programId, "world"), 1, GL_FALSE, value_ptr(world));
 
 	//ビュー行列
 	mat4 view = lookAt(_camera, _target, _up);
@@ -208,7 +205,7 @@ void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int
 	if (_close <= 0.2f) _close = 0.2f;
 	_camera = _target + trg2cmr * _close;
 		//回転
-	if (rotateF)
+	if (rotateF && manhattan_mouse > 1)
 	{
 		//arc ball上の点を求める
 		vec3 lastPoint = arcball_vector(lastX, lastY, 512, 512);
@@ -225,13 +222,22 @@ void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int
 		vec3 newCamera = rotate(mat4(1.0f), -angle/3.0f, axis_objectCoord) * vec4(_camera, 1.0f);
 		if (abs(dot(_up, normalize(_target-newCamera))) < 0.99f) _camera = newCamera;
 	}
-
 	view = lookAt(_camera, _target, _up);
-	glUniformMatrix4fv(glGetUniformLocation(_programId, "view"), 1, GL_FALSE, value_ptr(view));
 
 	//プロジェクション行列
 	mat4 proj = perspective(radians(45.0f), (float)512 / (float)512, 0.1f, 100.0f);
-	glUniformMatrix4fv(glGetUniformLocation(_programId, "proj"), 1, GL_FALSE, value_ptr(proj));
+
+	//転送
+	glUniformMatrix4fv(glGetUniformLocation(_programId, "MVP"), 1, GL_FALSE, value_ptr(proj*view*world));
+
+	//フラグメントシェーダーで使う用の変数を送る
+	vec4 camera_proj = proj * view * world * vec4(_camera, 1.0f);
+	vec4 ray_proj = proj * view * world * vec4(-trg2cmr, 1);
+	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, value_ptr(_camera));
+	glUniform3fv(glGetUniformLocation(_programId, "ray"), 1, value_ptr(-trg2cmr));
+	glUniform3fv(glGetUniformLocation(_programId, "up"), 1, value_ptr(cameraUp));
+	glUniform3fv(glGetUniformLocation(_programId, "right"), 1, value_ptr(cameraRight));
+	glUniform3fv(glGetUniformLocation(_programId, "source"), 1, value_ptr(_source));
 
 	scrool = 0.0;
 }
@@ -257,7 +263,7 @@ void renderer::terminate()
 
 renderer::renderer()
 {
-	_camera = vec3(0.0f, 0.0f, 5.0f);
+	_camera = vec3(0.0f, 0.0f, 2.0f);
 	_source = vec3(0.0f, 0.0f, 0.0f);
 	_target = vec3(0.0f, 0.0f, 0.0f);
 	_up = vec3(0.0f, 1.0f, 0.0f);

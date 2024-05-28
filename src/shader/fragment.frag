@@ -3,35 +3,38 @@
 uniform sampler3D volume;
 uniform vec3 camera;
 uniform vec3 ray;
+uniform vec3 up;
+uniform vec3 right;
+uniform vec3 source;
 uniform float step;
 
-in vec3 texcoord;
 out vec4 FragColor;
 
 float getCT(vec3 pos)
 {
-	return texture(volume, pos).r;
+	vec3 sample = pos-source+vec3(0.5);
+	sample.z = (sample.z-0.5+0.26464)/0.26464*0.5;
+	return texture(volume, sample).r;
 }
 
 void main()
 {
-	vec3 start = vec3(gl_FragCoord.x/512+camera.x, gl_FragCoord.y/512+camera.y, 0.0);
-	vec3 now = start;
+	float distance = abs(dot(camera-source, ray));
+	vec3 now = camera+distance*right*(gl_FragCoord.x/512-0.5)+distance*up*(gl_FragCoord.y/512-0.5);
 	float totalcolor = 0;
 	float totalalpha = 0;
 
-	for(int i=0;i<271;i++)
+	for(int i=0;i<1000;i++)
 	{
-		if(now.x < 0.0 || now.x > 1.0 || now.y < 0.0 || now.y > 1.0 || now.z < 0.0 || now.z > 1.0) continue;
+		now += step*ray;
+		if(now.x < source.x-0.5 || now.x > source.x+0.5 || now.y < source.y-0.5 || now.y > source.y+0.5 || now.z < source.z-0.26464 || now.z > source.z+0.26464) continue;
 		if(totalalpha >= 1.0) break;
 
 		float CT = getCT(now);
-		float alpha = CT*0.01;
+		float alpha = CT*0.1;
 		totalcolor += CT*alpha*(1.0-totalalpha);
 		totalalpha += alpha*(1.0-totalalpha);
-		now += step*ray;
 	}
-	FragColor = vec4(1,1,1,0.1);
-	//if(totalalpha > 0.0) FragColor = vec4(totalcolor, totalcolor, totalcolor, totalalpha);
-	//else FragColor = vec4(0, 0, 0, 1);
+	//FragColor = vec4(start,1);
+	FragColor = vec4(totalcolor, totalcolor, totalcolor, 1.0);
 }
