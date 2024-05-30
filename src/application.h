@@ -10,6 +10,8 @@ class Application
 private:
 	//ウィンドウ
 	GLFWwindow* _window;
+	int height;
+	int width;
 
 	//renderer
 	renderer _renderer;
@@ -21,7 +23,6 @@ private:
 public:
 	//シングルトンインスタンスを返す
 	static Application& Instance();
-
 	bool Init();
 	void Run();
 	void Terminate();

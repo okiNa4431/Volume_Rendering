@@ -23,6 +23,8 @@ private:
 	vec3 _target;//注視点
 	vec3 _up;//上ベクトル
 	GLfloat _close;//注視点とカメラの距離
+	pair<int, int> windowSize;//ウィンドウのサイズ
+	vector<int> _size;//ボクセルのサイズ
 
 public:
 	bool setRenderer();
@@ -31,5 +33,6 @@ public:
 	void draw();
 	void terminate();
 	renderer();
+	renderer(pair<int, int> window);
 	~renderer();
 };

@@ -85,23 +85,24 @@ bool renderer::setRenderer()
 	glLinkProgram(_programId);
 	glUseProgram(_programId);
 
-	setCube();//ボリュームが収まる直方体を生成
-
 	return true;
 }
 
 bool renderer::setCube()
 {
 	// 頂点データ
+		//ボクセルサイズに合わせて直方体の辺の長さ変更
+	const float y = 0.5f * (float)_size[1] / (float)_size[0];
+	const float z = 0.5f * (float)_size[2] / (float)_size[0];
 	float vertices[] = {
-		-0.5f, -0.5f, -0.26464f,
-		0.5f, -0.5f, -0.26464f,
-		-0.5f, 0.5f, -0.26464f,
-		0.5f, 0.5f, -0.26464f,
-		-0.5f, -0.5f, 0.26464f,
-		0.5f, -0.5f, 0.26464f,
-		-0.5f, 0.5f, 0.26464f,
-		0.5f, 0.5f, 0.26464f,
+		-0.5f, -y, -z,
+		 0.5f, -y, -z,
+		-0.5f,  y, -z,
+		 0.5f,  y, -z,
+		-0.5f, -y,  z,
+	 	 0.5f, -y,  z,
+		-0.5f,  y,  z,
+		 0.5f,  y,  z,
 	};
 
 	//インデックスデータ
@@ -152,34 +153,29 @@ bool renderer::setCube()
 bool renderer::setVolume(const string& filePath)
 {
 	//ボリューム読み込み
-	const vector<int> size = { 512, 512, 271 };
-	_CT = new unsigned short[size[0] * size[1] * size[2]];
-	read_volume(filePath.c_str(), _CT, size);
+	_size = {512, 512, 271};
+	_CT = new unsigned short[_size[0] * _size[1] * _size[2]];
+	read_volume(filePath.c_str(), _CT, _size);
+
+	setCube();//ボリュームが収まる直方体を生成
 
 	//3Dテクスチャ生成
 	glGenTextures(1, &_volumeId);//テクスチャオブジェクト生成
 	glBindTexture(GL_TEXTURE_3D, _volumeId);//バインド
 	glActiveTexture(GL_TEXTURE0);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size[0], size[1], size[2], 0, GL_RED, GL_UNSIGNED_SHORT, _CT);//テクスチャ初期化、書き込み
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, _size[0], _size[1], _size[2], 0, GL_RED, GL_UNSIGNED_SHORT, _CT);//テクスチャ初期化、書き込み
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-	//ボリューム(3Dテクスチャ)、その他パラメータ転送
-	const float step = 0.1f;
-	glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
-	glUniform3fv(glGetUniformLocation(_programId, "camera"), 1, value_ptr(_camera));
-	//glUniform3fv(glGetUniformLocation(_programId, "ray"), 1, _ray);
+	//定数のデータを転送
+	const float step = 0.01f;
+	vec3 boxSize = vec3(0.5f, 0.5f * (float)_size[1] / (float)_size[0], 0.5f * (float)_size[2] / (float)_size[0]);
 	glUniform1f(glGetUniformLocation(_programId, "step"), step);
-		//座標変換行列
-	mat4 world = mat4(1.0f);
-	glUniformMatrix4fv(glGetUniformLocation(_programId, "world"), 1, GL_FALSE, value_ptr(world));
-	mat4 view = lookAt(_camera, _target, _up);
-	glUniformMatrix4fv(glGetUniformLocation(_programId, "view"), 1, GL_FALSE, value_ptr(view));
-	mat4 proj = perspective(radians(45.0f), (float)512 / (float)512, 0.1f, 100.0f);
-	glUniformMatrix4fv(glGetUniformLocation(_programId, "proj"), 1, GL_FALSE, value_ptr(proj));
+	glUniform2fv(glGetUniformLocation(_programId, "window"), 1, value_ptr(vec2(windowSize.first, windowSize.second)));
+	glUniform3fv(glGetUniformLocation(_programId, "box"), 1, value_ptr(boxSize));
 
 	return true;
 }
@@ -208,8 +204,8 @@ void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int
 	if (rotateF && manhattan_mouse > 1)
 	{
 		//arc ball上の点を求める
-		vec3 lastPoint = arcball_vector(lastX, lastY, 512, 512);
-		vec3 nowPoint = arcball_vector(nowX, nowY, 512, 512);
+		vec3 lastPoint = arcball_vector(lastX, lastY, windowSize.first, windowSize.second);
+		vec3 nowPoint = arcball_vector(nowX, nowY, windowSize.first, windowSize.second);
 		//二つの点を原点からのベクトルとみて、ベクトルの成す角度を求める
 		//ここで、0.99fでminをとっているのは1.0fを数値誤差の関係で超えたときにangleがnanになってクラッシュするのを防ぐため
 		float angle = acos(glm::min(0.99f, dot(lastPoint, nowPoint)));
@@ -225,7 +221,7 @@ void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int
 	view = lookAt(_camera, _target, _up);
 
 	//プロジェクション行列
-	mat4 proj = perspective(radians(45.0f), (float)512 / (float)512, 0.1f, 100.0f);
+	mat4 proj = perspective(radians(45.0f), (float)windowSize.first / (float)windowSize.second, 0.1f, 100.0f);
 
 	//転送
 	glUniformMatrix4fv(glGetUniformLocation(_programId, "MVP"), 1, GL_FALSE, value_ptr(proj*view*world));
@@ -252,7 +248,7 @@ void renderer::terminate()
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, _volumeId);//バインド
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, 512, 512, 271, 0, GL_R, GL_UNSIGNED_SHORT, _CT);//テクスチャ初期化、書き込み
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, _size[0], _size[1], _size[2], 0, GL_R, GL_UNSIGNED_SHORT, _CT);//テクスチャ初期化、書き込み
 	glBindTexture(GL_TEXTURE_3D, 0);
 	glUniform1i(glGetUniformLocation(_programId, "volume"), 0);
 
@@ -261,13 +257,17 @@ void renderer::terminate()
 	glDeleteProgram(_programId);
 }
 
-renderer::renderer()
+renderer::renderer(pair<int, int> window)
 {
 	_camera = vec3(0.0f, 0.0f, 2.0f);
 	_source = vec3(0.0f, 0.0f, 0.0f);
 	_target = vec3(0.0f, 0.0f, 0.0f);
 	_up = vec3(0.0f, 1.0f, 0.0f);
 	_close = distance(_camera, _source);
+	windowSize = window;
+}
+renderer::renderer()
+{
 }
 renderer::~renderer()
 {

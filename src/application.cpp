@@ -63,7 +63,7 @@ bool Application::Init()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-	_window = glfwCreateWindow(512, 512, "Volume Rendering", nullptr, nullptr);
+	_window = glfwCreateWindow(width, height, "Volume Rendering", nullptr, nullptr);
 	if (!_window)
 	{
 		cout << "could not create window" << endl;
@@ -80,12 +80,12 @@ bool Application::Init()
 	//GLEW‚Ì‰Šú‰»
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
-		std::cerr << "could not init glew" << std::endl;
+		cout << "could not init glew" << endl;
 		return false;
 	}
 
 	//rendererì¬
-	_renderer = renderer();
+	_renderer = renderer(make_pair(width,height));
 }
 
 void Application::Run()
@@ -134,6 +134,8 @@ Application& Application::Instance()
 Application::Application()
 {
 	_window = nullptr;
+	height = 800;
+	width = 1200;
 }
 Application::~Application()
 {

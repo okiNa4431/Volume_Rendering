@@ -10,7 +10,6 @@ using namespace std;
 void read_volume(const char filename[], unsigned short* volume, const std::vector<int>& voxelSize)
 {
 	ifstream ifs(filename, ios::in | ios::binary);
-	//for (int i = 0; i < voxelSize[0] * voxelSize[1] * voxelSize[2]; i++) volume[i] = i%UINT16_MAX;
 	for (int i = 0; i < voxelSize[2]; i++)
 	{
 		for (int j = 0; j < voxelSize[1]; j++)
@@ -28,7 +27,6 @@ string read_shader(const char filename[])
 	const filesystem::path trueCurrentPath = currentPath_str.substr(0, currentPath_str.find("Volume_Rendering")+17);
 	const filesystem::path absolutePath = trueCurrentPath / "src" / "shader" / filename;
 	const string path_str = absolutePath.string();
-	cout << path_str << endl;
 
 	ifstream ifs(absolutePath, ios::in);
 	istreambuf_iterator<char> shaderBegin(ifs);
