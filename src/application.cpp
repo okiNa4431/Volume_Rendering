@@ -98,9 +98,9 @@ void Application::Run()
 
 	//•`‰æ‘ÎÛ‚ğİ’è
 		//“ü—Í
-	string path = "D:shell_512_512_271.raw";
-	int size[3] = {512, 512, 271};
-	if (!_renderer.setVolume(path, size))
+	string path = "D:path/to/volume";
+	int voxelsSize[3] = {512, 512, 271};
+	if (!_renderer.setVolume(path, voxelsSize))
 	{
 		exit(EXIT_FAILURE);
 	}
