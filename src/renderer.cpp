@@ -150,10 +150,10 @@ bool renderer::setCube()
 	return true;
 }
 
-bool renderer::setVolume(const string& filePath)
+bool renderer::setVolume(const string& filePath, int size[3])
 {
 	//ƒ{ƒŠƒ…[ƒ€“Ç‚İ‚İ
-	_size = {512, 512, 271};
+	_size = {size[0], size[1], size[2]};
 	_CT = new unsigned short[_size[0] * _size[1] * _size[2]];
 	read_volume(filePath.c_str(), _CT, _size);
 

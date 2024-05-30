@@ -28,7 +28,7 @@ private:
 
 public:
 	bool setRenderer();
-	bool setVolume(const string& filePath);
+	bool setVolume(const string& filePath, int size[3]);
 	void setWorldParams(float& scrool, int lastX, int nowX, int lastY, int nowY, bool rotateF, bool translateF);
 	void draw();
 	void terminate();

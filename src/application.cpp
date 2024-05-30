@@ -97,7 +97,10 @@ void Application::Run()
 	}
 
 	//•`‰æ‘ÎÛ‚ğİ’è
-	if (!_renderer.setVolume("D:shell_512_512_271.raw"))
+		//“ü—Í
+	string path = "D:shell_512_512_271.raw";
+	int size[3] = {512, 512, 271};
+	if (!_renderer.setVolume(path, size))
 	{
 		exit(EXIT_FAILURE);
 	}
