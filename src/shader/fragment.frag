@@ -9,6 +9,8 @@ uniform vec3 source;
 uniform float step;
 uniform vec2 window;
 uniform vec3 box;
+uniform float threshold;
+uniform float strength;
 
 out vec4 FragColor;
 
@@ -28,15 +30,15 @@ void main()
 	float totalcolor = 0;
 	float totalalpha = 0;
 
-	for(int i=0;i<1000;i++)
+	for(int i=0;i<5000;i++)
 	{
 		now += step*ray;
 		if(now.x < source.x-box[0] || now.x > source.x+box[0] || now.y < source.y-box[1] || now.y > source.y+box[1] || now.z < source.z-box[2] || now.z > source.z+box[2]) continue;
 		if(totalalpha >= 1.0) break;
 
 		float CT = getCT(now);
-		if(CT < 0.55) continue;
-		float alpha = CT*0.1;
+		if(CT < threshold) continue;
+		float alpha = CT*strength;
 		totalcolor += CT*alpha*(1.0-totalalpha);
 		totalalpha += alpha*(1.0-totalalpha);
 	}

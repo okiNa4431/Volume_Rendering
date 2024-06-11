@@ -43,14 +43,15 @@ int renderer::compile_shader(const string& shader_str, const int shader_type)
 		{
 			cout << "could not compile fragment shader." << endl;
 		}
+
+		//エラーログ表示
+		const GLsizei maxLength = 1024;
+		GLsizei length;
+		auto* infoLog = new GLchar[maxLength];
+		glGetShaderInfoLog(shader, maxLength, &length, infoLog);
+		std::cout << infoLog << std::endl;
+		delete[] infoLog;
 	}
-	//エラーログ表示
-	const GLsizei maxLength = 1024;
-	GLsizei length;
-	auto* infoLog = new GLchar[maxLength];
-	glGetShaderInfoLog(shader, maxLength, &length, infoLog);
-	std::cout << infoLog << std::endl;
-	delete[] infoLog;
 	
 	return shader;
 }
@@ -156,7 +157,6 @@ bool renderer::setVolume(const string& filePath, int size[3])
 	_size = {size[0], size[1], size[2]};
 	_CT = new unsigned short[_size[0] * _size[1] * _size[2]];
 	read_volume(filePath.c_str(), _CT, _size);
-
 	setCube();//ボリュームが収まる直方体を生成
 
 	//3Dテクスチャ生成
@@ -171,7 +171,7 @@ bool renderer::setVolume(const string& filePath, int size[3])
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	//定数のデータを転送
-	const float step = 0.01f;
+	const float step = 0.0005f;
 	vec3 boxSize = vec3(0.5f, 0.5f * (float)_size[1] / (float)_size[0], 0.5f * (float)_size[2] / (float)_size[0]);
 	glUniform1f(glGetUniformLocation(_programId, "step"), step);
 	glUniform2fv(glGetUniformLocation(_programId, "window"), 1, value_ptr(vec2(windowSize.first, windowSize.second)));
@@ -180,7 +180,7 @@ bool renderer::setVolume(const string& filePath, int size[3])
 	return true;
 }
 
-void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int nowY, bool rotateF, bool translateF)
+void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int nowY, bool rotateF, bool translateF, bool& rightKey, bool& leftKey, bool& upKey, bool& downKey)
 {
 	//前処理
 	vec3 trg2cmr = normalize(_camera - _target);
@@ -234,8 +234,24 @@ void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int
 	glUniform3fv(glGetUniformLocation(_programId, "up"), 1, value_ptr(cameraUp));
 	glUniform3fv(glGetUniformLocation(_programId, "right"), 1, value_ptr(cameraRight));
 	glUniform3fv(glGetUniformLocation(_programId, "source"), 1, value_ptr(_source));
+		//表示するボリュームの閾値
+	if (rightKey && _thresholdCT <= 1.0f) _thresholdCT = std::min(1.0f, _thresholdCT + 0.04f);
+	if (leftKey && _thresholdCT >= 0.0f) _thresholdCT = std::max(0.0f, _thresholdCT - 0.04f);
+	if (upKey && _strength <= 1.0f) _strength = std::min(1.0f, _strength + 0.04f);
+	if (downKey && _strength >= 0.0f) _strength = std::max(0.0f, _strength - 0.04f);
+	glUniform1f(glGetUniformLocation(_programId, "threshold"), _thresholdCT);
+	glUniform1f(glGetUniformLocation(_programId, "strength"), _strength);
+
+	if (rightKey || leftKey || upKey || downKey)
+	{
+		cout << "\033[2K\rthreshold:" << _thresholdCT << ", strength: " << _strength;
+	}
 
 	scrool = 0.0;
+	rightKey = false;
+	leftKey = false;
+	upKey = false;
+	downKey = false;
 }
 
 void renderer::draw()
@@ -259,12 +275,14 @@ void renderer::terminate()
 
 renderer::renderer(pair<int, int> window)
 {
-	_camera = vec3(0.0f, 0.0f, 2.0f);
+	_camera = vec3(0.0f, 0.0f, 1.0f);
 	_source = vec3(0.0f, 0.0f, 0.0f);
 	_target = vec3(0.0f, 0.0f, 0.0f);
 	_up = vec3(0.0f, 1.0f, 0.0f);
 	_close = distance(_camera, _source);
 	windowSize = window;
+	_thresholdCT = 0.1f;
+	_strength = 0.1f;
 }
 renderer::renderer()
 {

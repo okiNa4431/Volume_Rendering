@@ -12,7 +12,7 @@ project("Volume_Rendering")
 #library to use
 find_package(OpenGL REQUIRED)
 list(APPEND CMAKE_PREFIX_PATH /Libraries/glfwlib)
-list(APPEND CMAKE_PREFIX_PATH /Libraries/glewlib/GLEW/include)
+list(APPEND CMAKE_PREFIX_PATH /Libraries/glewlib/GLEW)
 list(APPEND CMAKE_PREFIX_PATH /Libraries/glmlib)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)

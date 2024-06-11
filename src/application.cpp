@@ -1,5 +1,6 @@
 #include "application.h"
 
+//マウス・キーボードの入力値
 float scrool_yoffset = 0.0;
 float nowMouseX = 0.0f;
 float nowMouseY = 0.0f;
@@ -7,6 +8,10 @@ float lastMouseX = 0.0f;
 float lastMouseY = 0.0f;
 bool translate_flag = false;
 bool rotate_flag = false;
+bool right_key_down = false;
+bool left_key_down = false;
+bool up_key_down = false;
+bool down_key_down = false;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -44,6 +49,25 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	scrool_yoffset = yoffset;
 }
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_RIGHT) {
+			right_key_down = true;
+		}
+		else if (key == GLFW_KEY_LEFT) {
+			left_key_down = true;
+		}
+		if (key == GLFW_KEY_UP)
+		{
+			up_key_down = true;
+		}
+		else if (key == GLFW_KEY_DOWN)
+		{
+			down_key_down = true;
+		}
+	}
+}
 
 bool Application::Init()
 {
@@ -72,10 +96,11 @@ bool Application::Init()
 	glfwMakeContextCurrent(_window);
 	glClearColor(0, 0, 0, 1);
 
-	//マウス入力
+	//マウス・キーボード入力
 	glfwSetCursorPosCallback(_window, mouse_callback);
 	glfwSetMouseButtonCallback(_window, mouse_button_callback);
 	glfwSetScrollCallback(_window, scroll_callback);
+	glfwSetKeyCallback(_window, key_callback);
 
 	//GLEWの初期化
 	glewExperimental = GL_TRUE;
@@ -95,11 +120,10 @@ void Application::Run()
 	{
 		exit(EXIT_FAILURE);
 	}
-
 	//描画対象を設定
 		//入力
-	string path = "D:path/to/volume";
-	int voxelsSize[3] = {512, 512, 271};
+	string path = "D:Volume/Nio-uint16-692x349x241-1.5mm_max.raw";
+	int voxelsSize[3] = { 692, 349, 241 };
 	if (!_renderer.setVolume(path, voxelsSize))
 	{
 		exit(EXIT_FAILURE);
@@ -112,7 +136,7 @@ void Application::Run()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//描画
-		_renderer.setWorldParams(scrool_yoffset, lastMouseX, nowMouseX, lastMouseY, nowMouseY, rotate_flag, translate_flag);
+		_renderer.setWorldParams(scrool_yoffset, lastMouseX, nowMouseX, lastMouseY, nowMouseY, rotate_flag, translate_flag, right_key_down, left_key_down, up_key_down, down_key_down);
 		_renderer.draw();
 
 		//スワップ

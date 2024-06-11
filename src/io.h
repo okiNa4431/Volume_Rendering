@@ -10,6 +10,7 @@ using namespace std;
 void read_volume(const char filename[], unsigned short* volume, const std::vector<int>& voxelSize)
 {
 	ifstream ifs(filename, ios::in | ios::binary);
+	//for (int i = 0; i < voxelSize[0]*voxelSize[1]*voxelSize[2]; i++) volume[i] = 6000;
 	for (int i = 0; i < voxelSize[2]; i++)
 	{
 		for (int j = 0; j < voxelSize[1]; j++)

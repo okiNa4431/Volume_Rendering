@@ -25,11 +25,13 @@ private:
 	GLfloat _close;//注視点とカメラの距離
 	pair<int, int> windowSize;//ウィンドウのサイズ
 	vector<int> _size;//ボクセルのサイズ
+	float _thresholdCT;
+	float _strength;
 
 public:
 	bool setRenderer();
 	bool setVolume(const string& filePath, int size[3]);
-	void setWorldParams(float& scrool, int lastX, int nowX, int lastY, int nowY, bool rotateF, bool translateF);
+	void setWorldParams(float& scrool, int lastX, int nowX, int lastY, int nowY, bool rotateF, bool translateF, bool& rightKey, bool& leftKey, bool& upKey, bool& downKey);
 	void draw();
 	void terminate();
 	renderer();
