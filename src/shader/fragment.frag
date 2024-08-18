@@ -29,7 +29,7 @@ void main()
 	vec3 now = camera+distance*right*(gl_FragCoord.x/window.x-0.5)*window.x/window.y+distance*up*(gl_FragCoord.y/window.y-0.5);
 	float totalcolor = 0;
 	float totalalpha = 0;
-
+	float first = 0;
 	for(int i=0;i<5000;i++)
 	{
 		now += step*ray;
@@ -38,9 +38,13 @@ void main()
 
 		float CT = getCT(now);
 		if(CT < threshold) continue;
+		if(CT != 0 && totalcolor == 0) first = CT;
 		float alpha = CT*strength;
 		totalcolor += CT*alpha*(1.0-totalalpha);
 		totalalpha += alpha*(1.0-totalalpha);
 	}
-	FragColor = vec4(totalcolor, totalcolor, totalcolor, 1.0);
+	if(500 <= first*65535 && first*65535 <= 1500) FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	else if(1500 < first*65535 && first*65535 <= 2500) FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+	else if (2500 < first*65535 && first*65535 <= 3500) FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+	else  FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

@@ -122,8 +122,8 @@ void Application::Run()
 	}
 	//•`‰æ‘ÎÛ‚ğİ’è
 		//“ü—Í
-	string path = "D:Volume/Nio-uint16-692x349x241-1.5mm_max.raw";
-	int voxelsSize[3] = { 692, 349, 241 };
+	string path = "D:CADdata/CADplate-uint16-1000x1000x1000-0.5mm.raw";
+	int voxelsSize[3] = { 1000, 1000, 1000 };
 	if (!_renderer.setVolume(path, voxelsSize))
 	{
 		exit(EXIT_FAILURE);

@@ -155,7 +155,7 @@ bool renderer::setVolume(const string& filePath, int size[3])
 {
 	//ボリューム読み込み
 	_size = {size[0], size[1], size[2]};
-	_CT = new unsigned short[_size[0] * _size[1] * _size[2]];
+	_CT = new unsigned short[(long long)_size[0] * _size[1] * _size[2]];
 	read_volume(filePath.c_str(), _CT, _size);
 	setCube();//ボリュームが収まる直方体を生成
 
@@ -235,8 +235,8 @@ void renderer::setWorldParams(float& scrool, int lastX, int nowX, int lastY, int
 	glUniform3fv(glGetUniformLocation(_programId, "right"), 1, value_ptr(cameraRight));
 	glUniform3fv(glGetUniformLocation(_programId, "source"), 1, value_ptr(_source));
 		//表示するボリュームの閾値
-	if (rightKey && _thresholdCT <= 1.0f) _thresholdCT = std::min(1.0f, _thresholdCT + 0.04f);
-	if (leftKey && _thresholdCT >= 0.0f) _thresholdCT = std::max(0.0f, _thresholdCT - 0.04f);
+	if (rightKey && _thresholdCT <= 1.0f) _thresholdCT = std::min(1.0f, _thresholdCT + 0.02f);
+	if (leftKey && _thresholdCT >= 0.0f) _thresholdCT = std::max(0.0f, _thresholdCT - 0.02f);
 	if (upKey && _strength <= 1.0f) _strength = std::min(1.0f, _strength + 0.04f);
 	if (downKey && _strength >= 0.0f) _strength = std::max(0.0f, _strength - 0.04f);
 	glUniform1f(glGetUniformLocation(_programId, "threshold"), _thresholdCT);
@@ -282,7 +282,7 @@ renderer::renderer(pair<int, int> window)
 	_close = distance(_camera, _source);
 	windowSize = window;
 	_thresholdCT = 0.1f;
-	_strength = 0.1f;
+	_strength = 0.6f;
 }
 renderer::renderer()
 {
